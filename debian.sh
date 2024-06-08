@@ -40,13 +40,13 @@ shift
 
 case "$COMANDO" in
     ip-estatica)
-        ./configuración/red/configurar_ip_estatica.sh "$@"
+        ./red/configurar_ip_estatica.sh "$@"
         ;;
     agrupar-if)
-        ./configuración/red/agrupar_if.sh "$@"
+        ./red/agrupar_if.sh "$@"
         ;;
     ip-virtual)
-        ./configuración/red/ip_virtual.sh "$@"
+        ./red/ip_virtual.sh "$@"
         ;;
     *)
         echo "Comando no reconocido: $COMANDO"
