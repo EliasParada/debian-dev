@@ -111,6 +111,9 @@ EOL
     )
 done
 
+BONDING_CONFIG+="##
+"
+
 # Actualizar el archivo de configuración de interfaces
 if grep -q "## Configurar interfaz agrupada" "$INTERFACES_FILE"; then
     sed -i "/## Configurar interfaz agrupada/,/##/c\\$BONDING_CONFIG" "$INTERFACES_FILE"
