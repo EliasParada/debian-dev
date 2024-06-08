@@ -10,6 +10,7 @@ mostrar_ayuda() {
     echo "Comandos disponibles:"
     echo "  ip-estatica         - Configura una dirección IP estática"
     echo "  agrupar-if          - Configura la agrupación de interfaces de red"
+    echo "  ip-virtual          - Configura una IP virtual en una interfaz de red"
     echo
     echo "Opciones para ip-estatica:"
     echo "  --ip IP              - Dirección IP estática"
@@ -24,6 +25,12 @@ mostrar_ayuda() {
     echo "  --slaves IFACES      - Interfaces esclavas separadas por espacios (ej. enp0s3 enp0s8)"
     echo "  --host HOST          - Nombre del host (ej. server.lan)"
     echo
+    echo "Opciones para ip-virtual:"
+    echo "  --ip IP              - Dirección IP estática principal"
+    echo "  --iface IFACE        - Interfaz de red (ej. enp0s9)"
+    echo "  --virtual-ip IP      - Dirección IP virtual (ej. 192.168.87.73)"
+    echo "  --host HOST          - Nombre del host (ej. virtual.server.lan)"
+    echo
     echo "  -h, --help           - Muestra esta ayuda"
 }
 
@@ -33,10 +40,13 @@ shift
 
 case "$COMANDO" in
     ip-estatica)
-        ./red/configurar_ip_estatica.sh "$@"
+        ./configuración/red/configurar_ip_estatica.sh "$@"
         ;;
     agrupar-if)
-        ./red/agrupar_if.sh "$@"
+        ./configuración/red/agrupar_if.sh "$@"
+        ;;
+    ip-virtual)
+        ./configuración/red/ip_virtual.sh "$@"
         ;;
     *)
         echo "Comando no reconocido: $COMANDO"
