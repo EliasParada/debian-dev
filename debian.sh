@@ -11,6 +11,8 @@ mostrar_ayuda() {
     echo "  ip-estatica         - Configura una dirección IP estática"
     echo "  agrupar-if          - Configura la agrupación de interfaces de red"
     echo "  ip-virtual          - Configura una IP virtual en una interfaz de red"
+    echo "  ssh                 - Configura el servidor SSH"
+    echo "  ftp                 - Configura el servidor FTP"
     echo
     echo "Opciones para ip-estatica:"
     echo "  --ip IP              - Dirección IP estática"
@@ -31,6 +33,10 @@ mostrar_ayuda() {
     echo "  --virtual-ip IP      - Dirección IP virtual (ej. 192.168.87.73)"
     echo "  --host HOST          - Nombre del host (ej. virtual.server.lan)"
     echo
+    echo "Opciones para ssh:"
+    echo "  --ip IP              - Dirección IP para ListenAddress"
+    echo
+    echo "Opciones para ftp:"
     echo "  -h, --help           - Muestra esta ayuda"
 }
 
@@ -47,6 +53,12 @@ case "$COMANDO" in
         ;;
     ip-virtual)
         ./red/ip_virtual.sh "$@"
+        ;;
+    ssh)
+        ./remote/configurar_ssh.sh "$@"
+        ;;
+    ftp)
+        ./remote/configurar_ftp.sh "$@"
         ;;
     *)
         echo "Comando no reconocido: $COMANDO"
