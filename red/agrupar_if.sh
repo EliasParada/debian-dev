@@ -12,6 +12,7 @@ mostrar_ayuda() {
     echo "  --network RED               - Red (ej. 192.168.1)"
     echo "  --master IFACE_MAESTRA      - Interfaz maestra (ej. bond0)"
     echo "  --slaves IFACES_ESCLAVAS    - Interfaces esclavas separadas por espacios (ej. enp0s3 enp0s8)"
+    echo "  --host HOST          - Nombre del host (ej. server.lan)"
     echo "  -h, --help                  - Muestra esta ayuda"
 }
 
@@ -34,6 +35,10 @@ while [[ "$#" -gt 0 ]]; do
             SLAVES="$2"
             shift
             ;;
+        --host)
+            HOST="$2"
+            shift
+            ;;
         -h|--help)
             mostrar_ayuda
             exit 0
@@ -47,7 +52,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-if [[ -z "$IP" || -z "$NETWORK" || -z "$MASTER" || -z "$SLAVES" ]]; then
+if [[ -z "$IP" || -z "$NETWORK" || -z "$MASTER" || -z "$SLAVES" || -z "$HOST" ]]; then
     echo "Todos los parámetros son obligatorios."
     mostrar_ayuda
     exit 1
@@ -63,7 +68,7 @@ export PATH=$PATH:/sbin:/usr/sbin
 
 # Cargar el módulo de bonding
 echo "Cargando el módulo de bonding..."
-modprobe bonding
+sudo modprobe bonding
 
 # Verificar que el módulo bonding esté cargado
 echo "Verificando que el módulo de bonding esté cargado..."
@@ -89,6 +94,7 @@ iface $MASTER inet static
     netmask 255.255.255.0
     broadcast ${NETWORK}.255
     network ${NETWORK}.0
+    slaves ${SLAVE}
     bond-mode balance-rr
     bond-miimon 100
     bond-downdelay 200
@@ -113,12 +119,20 @@ done
 
 # Reiniciar el módulo de bonding
 echo "Reiniciando el módulo de bonding..."
-modprobe -r bonding
-modprobe bonding
+sudo modprobe -r bonding
+sudo modprobe bonding
 
 # Reiniciar el servicio de red
 echo "Reiniciando el servicio de red..."
 systemctl restart networking.service
+
+# Configurar el archivo /etc/resolv.conf
+echo "Configurando /etc/resolv.conf..."
+RESOLV_CONF="domain $HOST
+search $HOST
+nameserver $NETWORK.1"
+
+echo "$RESOLV_CONF" > /etc/resolv.conf
 
 # Comprobar que ambas interfaces sean esclavas
 echo "Comprobando configuración de bonding..."
