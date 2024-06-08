@@ -57,9 +57,9 @@ fi
 echo "Configurando /etc/network/interfaces..."
 INTERFACE_CONFIG="auto $IFACE
 iface $IFACE inet static
-allow-hotplug $IFACE
+allow hot-plug $IFACE
 address $IP
-gateway $IP
+gateway $NETWORK.1
 netmask 255.255.255.0
 broadcast $NETWORK.255
 network $NETWORK.0"
