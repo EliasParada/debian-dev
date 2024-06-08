@@ -64,9 +64,9 @@ netmask 255.255.255.0
 broadcast $NETWORK.255
 network $NETWORK.0"
 
-if grep -q "iface $IFACE inet static" /etc/network/interfaces; then
+if grep -q "auto $IFACE" /etc/network/interfaces; then
     # Reemplazar la configuración existente de la interfaz
-    sed -i "/iface $IFACE inet static/,+6d" /etc/network/interfaces
+    sed -i "/auto $IFACE/,+6d" /etc/network/interfaces
 fi
 
 echo "$INTERFACE_CONFIG" >> /etc/network/interfaces
@@ -85,4 +85,4 @@ echo "$RESOLV_CONF" > /etc/resolv.conf
 
 # Reiniciar el sistema
 echo "Reiniciando el sistema..."
-reboot
+sudo reboot
