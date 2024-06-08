@@ -5,14 +5,14 @@
 
 # Mostrar ayuda
 mostrar_ayuda() {
-    echo "Uso: $0 --ip IP --network RED --master IFACE_MAESTRA --slaves IFACES_ESCLAVAS"
+    echo "Uso: $0 --ip IP --network RED --master IFACE_MAESTRA --slaves IFACES_ESCLAVAS --host HOST"
     echo
     echo "Opciones:"
     echo "  --ip IP                     - Dirección IP estática"
     echo "  --network RED               - Red (ej. 192.168.1)"
     echo "  --master IFACE_MAESTRA      - Interfaz maestra (ej. bond0)"
     echo "  --slaves IFACES_ESCLAVAS    - Interfaces esclavas separadas por espacios (ej. enp0s3 enp0s8)"
-    echo "  --host HOST          - Nombre del host (ej. server.lan)"
+    echo "  --host HOST                 - Nombre del host (ej. server.lan)"
     echo "  -h, --help                  - Muestra esta ayuda"
 }
 
@@ -78,15 +78,11 @@ lsmod | grep bonding
 echo "Configurando /etc/network/interfaces..."
 INTERFACES_FILE="/etc/network/interfaces"
 
-# Comentar cualquier configuración previa de las interfaces esclavas y maestra
-for IFACE in $SLAVES $MASTER; do
-    sed -i "s/^iface $IFACE inet static/#&/" $INTERFACES_FILE
-    sed -i "s/^auto $IFACE/#&/" $INTERFACES_FILE
-done
-
-# Configuración para la interfaz maestra
-cat <<EOL >> $INTERFACES_FILE
-
+# Crear la configuración de la interfaz agrupada
+BONDING_CONFIG=$(cat <<EOL
+##
+## Configurar interfaz agrupada
+##
 auto $MASTER
 iface $MASTER inet static
     address $IP
@@ -94,22 +90,33 @@ iface $MASTER inet static
     netmask 255.255.255.0
     broadcast ${NETWORK}.255
     network ${NETWORK}.0
-    slaves ${SLAVE}
+    slaves $SLAVES
     bond-mode balance-rr
     bond-miimon 100
     bond-downdelay 200
     bond-updelay 200
+
 EOL
+)
 
 # Configuración para cada interfaz esclava
 for SLAVE in $SLAVES; do
-    cat <<EOL >> $INTERFACES_FILE
+    BONDING_CONFIG+=$(cat <<EOL
 
 auto $SLAVE
 iface $SLAVE inet manual
     bond-master $MASTER
+
 EOL
+    )
 done
+
+# Actualizar el archivo de configuración de interfaces
+if grep -q "## Configurar interfaz agrupada" "$INTERFACES_FILE"; then
+    sed -i "/## Configurar interfaz agrupada/,/##/c\\$BONDING_CONFIG" "$INTERFACES_FILE"
+else
+    echo "$BONDING_CONFIG" >> "$INTERFACES_FILE"
+fi
 
 # Configurar cada interfaz esclava
 echo "Bajando interfaces esclavas..."
@@ -130,7 +137,7 @@ systemctl restart networking.service
 echo "Configurando /etc/resolv.conf..."
 RESOLV_CONF="domain $HOST
 search $HOST
-nameserver $NETWORK.1"
+nameserver ${NETWORK}.1"
 
 echo "$RESOLV_CONF" > /etc/resolv.conf
 
@@ -142,6 +149,6 @@ cat /proc/net/bonding/$MASTER
 echo "Configuración de red:"
 ip -4 a
 
-# Probar conexión a internet
+# Probar conexión a Internet
 echo "Probando conexión a Internet..."
 ping -c 4 8.8.8.8

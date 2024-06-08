@@ -22,6 +22,7 @@ mostrar_ayuda() {
     echo "  --network RED        - Red (ej. 192.168.1)"
     echo "  --master IFACE       - Interfaz maestra (ej. bond0)"
     echo "  --slaves IFACES      - Interfaces esclavas separadas por espacios (ej. enp0s3 enp0s8)"
+    echo "  --host HOST          - Nombre del host (ej. server.lan)"
     echo
     echo "  -h, --help           - Muestra esta ayuda"
 }
