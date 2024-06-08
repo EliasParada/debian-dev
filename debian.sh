@@ -24,7 +24,7 @@ shift
 
 case "$COMANDO" in
     ip-estatica)
-        ./configuración/red/configurar_ip_estatica.sh "$@"
+        ./red/configurar_ip_estatica.sh "$@"
         ;;
     *)
         echo "Comando no reconocido: $COMANDO"
