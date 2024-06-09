@@ -5,7 +5,7 @@
 
 # Mostrar ayuda
 mostrar_ayuda() {
-    echo "Uso: $0 <opciones>"
+    echo "Uso: $0 --user USER --host HOST --full-host FULL_HOST --network NETWORK --ip IP --storage STORAGE"
     echo
     echo "Opciones:"
     echo "  --user USER          - Nombre del usuario"
@@ -16,59 +16,89 @@ mostrar_ayuda() {
     echo "  --storage STORAGE    - Límite de almacenamiento (ej. 10G)"
 }
 
-# Variables
-USER=""
-HOST=""
-FULL_HOST=""
-NETWORK=""
-IP=""
-STORAGE="10G"
-
-# Obtener opciones
-while [[ "$1" != "" ]]; do
+# Manejo de parámetros
+while [[ "$#" -gt 0 ]]; do
     case $1 in
-        --user )          shift
-                          USER=$1
-                          ;;
-        --host )          shift
-                          HOST=$1
-                          ;;
-        --full-host )     shift
-                          FULL_HOST=$1
-                          ;;
-        --network )       shift
-                          NETWORK=$1
-                          ;;
-        --ip )            shift
-                          IP=$1
-                          ;;
-        --storage )       shift
-                          STORAGE=$1
-                          ;;
-        -h | --help )     mostrar_ayuda
-                          exit
-                          ;;
-        * )               mostrar_ayuda
-                          exit 1
+        --user)
+            USER="$2"
+            shift
+            ;;
+        --host)
+            HOST="$2"
+            shift
+            ;;
+        --full-host)
+            FULL_HOST="$2"
+            shift
+            ;;
+        --network)
+            NETWORK="$2"
+            shift
+            ;;
+        --ip)
+            IP="$2"
+            shift
+            ;;
+        --storage)
+            STORAGE="$2"
+            shift
+            ;;
+        -h|--help)
+            mostrar_ayuda
+            exit 0
+            ;;
+        *)
+            echo "Opción desconocida: $1"
+            mostrar_ayuda
+            exit 1
+            ;;
     esac
     shift
 done
 
 # Comprobar parámetros obligatorios
-if [[ -z $USER ]] || [[ -z $HOST ]] || [[ -z $FULL_HOST ]] || [[ -z $NETWORK ]] || [[ -z $IP ]]; then
-    echo "Faltan parámetros obligatorios."
+if [[ -z "$USER" || -z "$HOST" || -z "$FULL_HOST" || -z "$NETWORK" || -z "$IP" ]]; then
+    echo "Todos los parámetros son obligatorios."
     mostrar_ayuda
     exit 1
 fi
 
 # Instalar Dovecot
 echo "Instalando Dovecot..."
+apt-get update
 apt-get install -y dovecot-imapd
 
 # Configurar Dovecot
 echo "Configurando Dovecot..."
-cat <<EOL > /etc/dovecot/local.conf
-mail_location = maildir:~/Maildir
+echo "mail_location = maildir:~/Maildir" > /etc/dovecot/local.conf
+
+# Verificar configuración de Dovecot
+echo "Verificando configuración de Dovecot..."
+sudo dovecot -n
+
+# Crear directorios de correo
+echo "Creando directorios de correo..."
+su - $USER -c "maildirmake.dovecot ~/Maildir"
+maildirmake.dovecot /etc/skel/Maildir
+sudo service dovecot restart
+
+# Prueba con telnet
+echo "Prueba con telnet..."
+telnet 127.0.0.1 imap <<EOF
+a login $USER $USER_PASSWORD
+a examine inbox
+a logout
+EOF
+
+# Modificar 10-mail.conf
+echo "Modificando /etc/dovecot/conf.d/10-mail.conf..."
+sed -i 's/^#mail_plugins =/mail_plugins = $mail_plugins imap_quota/' /etc/dovecot/conf.d/10-mail.conf
+sed -i 's/^mail_plugins =/mail_plugins = $mail_plugins imap_quota/' /etc/dovecot/conf.d/10-mail.conf
+
+# Modificar local.conf para plugins
+echo "Modificando /etc/dovecot/local.conf..."
+cat <<EOL >> /etc/dovecot/local.conf
+
 ## Plugins
 mail_plugins = \$mail_plugins quota
 protocol imap {
@@ -78,24 +108,21 @@ plugin {
   quota = maildir
   quota_rule = *:storage=$STORAGE
 }
-## Autentificación
-auth_mechanisms = plain login
-service auth {
-  unix_listener /var/spool/postfix/private/auth {
-    mode = 0666
-  }
-}
+## Fin
+
 EOL
 
-# Crear directorios de correo
-echo "Creando directorios de correo..."
-su - $USER -c "maildirmake.dovecot ~/Maildir"
-maildirmake.dovecot /etc/skel/Maildir
-sudo service dovecot restart
+# Reiniciar Dovecot
+echo "Reiniciando Dovecot..."
+sudo systemctl restart dovecot
 
-# Verificar configuración de Dovecot
-echo "Verificando configuración de Dovecot..."
-sudo dovecot -n
+# Prueba de nuevo con telnet
+echo "Prueba de nuevo con telnet..."
+telnet 127.0.0.1 imap <<EOF
+a login $USER $USER_PASSWORD
+a examine inbox
+a logout
+EOF
 
 # Instalar Postfix
 echo "Instalando Postfix..."
@@ -103,13 +130,64 @@ apt-get install -y postfix postfix-doc
 
 # Configurar Postfix
 echo "Configurando Postfix..."
+sed -i "s/^mydestination =.*/mydestination = $HOST, $FULL_HOST, localhost.$HOST, localhost/" /etc/postfix/main.cf
+sed -i "s/^mynetworks =.*/mynetworks = 127.0.0.0\/8, $NETWORK\/24/" /etc/postfix/main.cf
+sed -i "s/^inet_interfaces =.*/inet_interfaces = 127.0.0.1, $IP/" /etc/postfix/main.cf
+
+# Agregar configuraciones adicionales a Postfix
 cat <<EOL >> /etc/postfix/main.cf
-mydestination = $HOST, $FULL_HOST, localhost.$HOST, localhost
-mynetworks = 127.0.0.0/8, $NETWORK/24
-inet_interfaces = 127.0.0.1, $IP
+
 home_mailbox = Maildir/
+
 smtpd_client_restrictions = permit_mynetworks, reject
 smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
+smtpd_helo_restrictions = reject_unknown_sender_domain
+smtpd_sender_restrictions = reject_unknown_sender_domain
+
+EOL
+
+# Reiniciar Postfix
+echo "Reiniciando Postfix..."
+sudo service postfix restart
+
+# Prueba con telnet SMTP
+echo "Creando un correo con telnet..."
+telnet localhost smtp <<EOF
+EHLO localhost
+MAIL FROM: $USER@$HOST
+RCPT TO: $USER@$HOST
+DATA
+Subject: Sujeto
+Mensaje
+.
+quit
+EOF
+
+# Configurar autenticación
+echo "Configurando autenticación en Dovecot..."
+cat <<EOL >> /etc/dovecot/local.conf
+
+## Autentificación
+auth_mechanisms = plain login
+service auth {
+  unix_listener /var/spool/postfix/private/auth {
+    mode = 0666
+  }
+}
+## Fin
+
+EOL
+
+# Reiniciar Dovecot
+echo "Reiniciando Dovecot..."
+sudo service dovecot restart
+
+# Configurar SMTP autenticado en Postfix
+echo "Configurando autenticación SMTP en Postfix..."
+cat <<EOL >> /etc/postfix/main.cf
+
+smtpd_client_restrictions = permit_mynetworks, permit_sasl_authenticated, reject
+smtpd_recipient_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination
 smtpd_helo_restrictions = reject_unknown_sender_domain
 smtpd_sender_restrictions = reject_unknown_sender_domain
 smtpd_sasl_auth_enable = yes
@@ -117,33 +195,26 @@ smtpd_sasl_type = dovecot
 smtpd_sasl_path = private/auth
 smtpd_sasl_authenticated_header = yes
 broken_sasl_auth_clients = yes
+
 EOL
 
 # Reiniciar Postfix
 echo "Reiniciando Postfix..."
 sudo service postfix restart
 
-# Autenticación
-echo "Configurando autenticación..."
-cat <<EOL >> /etc/postfix/main.cf
-smtpd_client_restrictions = permit_mynetworks, permit_sasl_authenticated, reject
-smtpd_recipient_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination
-EOL
-
-sudo service dovecot restart
-sudo service postfix restart
-
-# Agregar usuario
-echo "Agregando usuario..."
+# Agregar nuevo usuario
+echo "Agregando nuevo usuario..."
 sudo adduser $USER
 newaliases
 
-# Configurar filtros
-echo "Configurando filtros..."
-apt install -y amavisd-new
-apt install -y arc arj bzip2 cabextract lhasa lzop nomarch p7zip-full pax rpm tnef unrar-free unzip zip
+# Instalar filtros y antivirus
+echo "Instalando Amavisd y paquetes necesarios..."
+apt install -y amavisd-new arc arj bzip2 cabextract lhasa lzop nomarch p7zip-full pax rpm tnef unrar-free unzip zip
 
+# Configurar filtros en Postfix
+echo "Configurando filtros en Postfix..."
 cat <<EOL >> /etc/postfix/main.cf
+
 amavis-filter   unix    -   -   n   -   2   smtp
   -o smtp_data_done_timeout=1200
   -o smtp_send_xforward_command=yes
@@ -167,15 +238,25 @@ amavis-filter   unix    -   -   n   -   2   smtp
   -o smtpd_client_connection_rate_limit=0
   -o receive_override_options=no_header_body_checks,no_unknown_recipient_checks,no_milters
   -o local_header_rewrite_clients=
+
 EOL
 
+# Reiniciar Postfix
+echo "Reiniciando Postfix..."
 sudo systemctl restart postfix
+
+# Verificar servicio
+echo "Verificando servicio..."
 netstat -tap
+
+# Prueba con telnet a Amavis
+echo "Prueba con telnet a Amavis..."
+telnet 127.0.0.1 10024 <<EOF
+quit
+EOF
 
 # Configurar antivirus
 echo "Configurando antivirus..."
-nano /etc/amavis/conf.d/15-content_filter_mode
-# Buscar y reemplazar las siguientes líneas
 sed -i 's/#@bypass_virus_checks_maps = (/ @bypass_virus_checks_maps = (/' /etc/amavis/conf.d/15-content_filter_mode
 sed -i 's/#   \%bypass_virus_checks,/   \%bypass_virus_checks, \@bypass_virus_checks_acl, \$bypass_virus_checks_re);/' /etc/amavis/conf.d/15-content_filter_mode
 
@@ -185,18 +266,17 @@ sudo systemctl restart clamav-daemon
 
 # Configurar antispam
 echo "Configurando antispam..."
-nano /etc/amavis/conf.d/15-content_filter_mode
-# Buscar y reemplazar las siguientes líneas
 sed -i 's/#@bypass_spam_checks_maps = (/ @bypass_spam_checks_maps = (/' /etc/amavis/conf.d/15-content_filter_mode
 sed -i 's/#   \%bypass_spam_checks,/   \%bypass_spam_checks, \@bypass_spam_checks_acl, \$bypass_spam_checks_re);/' /etc/amavis/conf.d/15-content_filter_mode
 
-nano /etc/amavis/conf.d/50-user
-# Agregar la configuración siguiente una línea antes de "#------------ Do not modify anything below this line -------------"
-echo "\$sa_spam_subject_tag = '***SPAM*** ';" >> /etc/amavis/conf.d/50-user
-echo "\$sa_tag_level_deflt  = undef;" >> /etc/amavis/conf.d/50-user
-echo "\$sa_tag2_level_deflt = 6.31;" >> /etc/amavis/conf.d/50-user
-echo "\$sa_kill_level_deflt = 9999;" >> /etc/amavis/conf.d/50-user
+# Configurar amavis usuario
+echo "Configurando Amavis usuario..."
+sed -i '/#------------ Do not modify anything below this line -------------/i\
+$sa_spam_subject_tag = '\'"***SPAM*** "\';\
+$sa_tag_level_deflt  = undef;  # add spam info headers if at, or above that level\
+$sa_tag2_level_deflt = 6.31;   # add 'spam detected' headers at that level\
+$sa_kill_level_deflt = 9999;   # triggers spam evasive actions' /etc/amavis/conf.d/50-user
 
-sudo service amavis restart
+sudo systemctl restart amavis
 
-echo "Configuración del servidor de correo completada."
+echo "Configuración completa."
