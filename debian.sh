@@ -55,6 +55,22 @@ mostrar_ayuda() {
     echo "  --server-full SERVER_FULL - Nombre completo del servidor (ej. debian.server.lan)"
     echo "  --virtual-ip VIRTUAL_IP   - Dirección IP virtual (ej. 192.168.2.15)"
     echo "  --router ROUTER        - Dirección IP del router (ej. 192.168.2.1)"
+    echo
+    echo "Opciones para dns-dinamico:"
+    echo "  --host HOST           - Nombre del host (ej. myserver.dyndns.org)"
+    echo
+    echo "Opciones para dhcp:"
+    echo "  --iface IFACE         - Interfaz de red (ej. enp0s3)"
+    echo "  --host HOST           - Nombre del dominio (ej. server.lan)"
+    echo "  --ip IP               - Dirección IP del servidor DNS"
+    echo "  --router ROUTER       - Dirección IP del router"
+    echo "  --network NETWORK     - Red (ej. 192.168.1.0)"
+    echo "  --broadcast BROADCAST - Dirección de broadcast (ej. 192.168.1.255)"
+    echo "  --from FROM           - Rango de direcciones IP desde (ej. 192.168.1.100)"
+    echo "  --to TO               - Rango de direcciones IP hasta (ej. 192.168.1.200)"
+    echo "  --pc-mac PC_MAC       - (Opcional) Dirección MAC de la PC"
+    echo "  --pc-ip PC_IP         - (Opcional) Dirección IP fija para la PC"
+    echo
 }
 
 # Manejo de parámetros
@@ -85,6 +101,12 @@ case "$COMANDO" in
         ;;
     servidor-dns)
         ./dns/configurar_servidor_dns.sh "$@"
+        ;;
+    dns-dinamico)
+        ./dns/configurar_dns_dinamico.sh "$@"
+        ;;
+    dhcp)
+        ./dhcp/configurar_dhcp.sh "$@"
         ;;
     *)
         echo "Comando no reconocido: $COMANDO"
