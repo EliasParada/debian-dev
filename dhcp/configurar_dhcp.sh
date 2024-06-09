@@ -108,6 +108,7 @@ replace_or_add_line() {
 }
 
 # Reemplazar o agregar líneas en /etc/dhcp/dhcpd.conf
+# Error, que agregue las primeras 2 lineas de una
 replace_or_add_line "/etc/dhcp/dhcpd.conf" "option domain-name-servers" "$IP, $ROUTER"
 replace_or_add_line "/etc/dhcp/dhcpd.conf" "option domain-name" "\"$HOST\""
 replace_or_add_line "/etc/dhcp/dhcpd.conf" "default-lease-time" "600"

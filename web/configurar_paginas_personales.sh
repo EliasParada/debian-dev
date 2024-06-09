@@ -24,6 +24,7 @@ sudo service apache2 restart
 
 # Crear directorio public_html
 echo "Creando directorio public_html..."
+# ERROR: debe de crear la carpeta en /home/[USUARIO]/
 mkdir -p ~/public_html
 cd ~/public_html
 echo "<html><body><h1>Página Personal</h1></body></html>" > index.html

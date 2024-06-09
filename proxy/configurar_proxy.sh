@@ -64,6 +64,7 @@ replace_or_add_line() {
 }
 
 # Reemplazar o agregar líneas en /etc/squid/squid.conf
+# Agregar el ACL despues de esta linea "acl CONNECT method CONNECT"
 replace_or_add_line "/etc/squid/squid.conf" "acl $HOST src" "$NETWORK"
 replace_or_add_line "/etc/squid/squid.conf" "http_access allow" "$HOST"
 replace_or_add_line "/etc/squid/squid.conf" "cache_dir ufs /var/spool/squid" "2048 16 256"
