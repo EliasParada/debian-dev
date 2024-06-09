@@ -15,6 +15,7 @@ mostrar_ayuda() {
     echo "  ftp                 - Configura el servidor FTP"
     echo "  ntp                 - Configura NTP"
     echo "  dns                 - Configura DNS"
+    echo "  proxy                 - Configura PROXY"
     echo
     echo "Opciones para ip-estatica:"
     echo "  --ip IP              - Dirección IP estática"
@@ -70,6 +71,12 @@ mostrar_ayuda() {
     echo "  --to TO               - Rango de direcciones IP hasta (ej. 192.168.1.200)"
     echo "  --pc-mac PC_MAC       - (Opcional) Dirección MAC de la PC"
     echo "  --pc-ip PC_IP         - (Opcional) Dirección IP fija para la PC"
+    echo "  --laptop-mac LAPTOP_MAC       - (Opcional) Dirección MAC de la Laptop"
+    echo "  --laptop-ip LAPTOP_IP         - (Opcional) Dirección IP fija para la Laptop"
+    echo
+    echo "Opciones para proxy:"
+    echo "  --host HOST           - Nombre del dominio (ej. server.lan)"
+    echo "  --network NETWORK     - Red (ej. 192.168.1.0/24)"
     echo
 }
 
@@ -107,6 +114,9 @@ case "$COMANDO" in
         ;;
     dhcp)
         ./dhcp/configurar_dhcp.sh "$@"
+        ;;
+    proxy)
+        ./proxy/configurar_proxy.sh "$@"
         ;;
     *)
         echo "Comando no reconocido: $COMANDO"
