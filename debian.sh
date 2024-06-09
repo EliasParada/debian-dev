@@ -19,6 +19,9 @@ mostrar_ayuda() {
     echo "  mysql               - Configura MySQL/MariaDB"
     echo "  antivirus           - Instala y configura el antivirus ClamAV"
     echo "  antispam            - Instala y configura el antispam SpamAssassin"
+    echo "  subversion          - Instala y configura Subversion"
+    echo "  servidor-web        - Instala y configura el servidor web Apache con PHP y MySQL"
+    echo "  paginas-personales  - Configura páginas personales en Apache"
     echo
     echo "Opciones para ip-estatica:"
     echo "  --ip IP              - Dirección IP estática"
@@ -90,6 +93,15 @@ mostrar_ayuda() {
     echo "Opciones para antispam:"
     echo "  -h, --help            - Muestra esta ayuda"
     echo
+    echo "Opciones para subversion:"
+    echo "  -h, --help            - Muestra esta ayuda"
+    echo
+    echo "Opciones para servidor-web:"
+    echo "  -h, --help            - Muestra esta ayuda"
+    echo
+    echo "Opciones para paginas-personales:"
+    echo "  -h, --help            - Muestra esta ayuda"
+    echo
 }
 
 # Manejo de parámetros
@@ -138,6 +150,15 @@ case "$COMANDO" in
         ;;
     antispam)
         ./seguridad/configurar_antispam.sh "$@"
+        ;;
+    subversion)
+        ./vcs/configurar_subversion.sh "$@"
+        ;;
+    servidor-web)
+        ./web/configurar_servidor_web.sh "$@"
+        ;;
+    paginas-personales)
+        ./web/configurar_paginas_personales.sh "$@"
         ;;
     *)
         echo "Comando no reconocido: $COMANDO"
