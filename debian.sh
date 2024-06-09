@@ -16,6 +16,9 @@ mostrar_ayuda() {
     echo "  ntp                 - Configura NTP"
     echo "  dns                 - Configura DNS"
     echo "  proxy                 - Configura PROXY"
+    echo "  mysql               - Configura MySQL/MariaDB"
+    echo "  antivirus           - Instala y configura el antivirus ClamAV"
+    echo "  antispam            - Instala y configura el antispam SpamAssassin"
     echo
     echo "Opciones para ip-estatica:"
     echo "  --ip IP              - Dirección IP estática"
@@ -78,6 +81,15 @@ mostrar_ayuda() {
     echo "  --host HOST           - Nombre del dominio (ej. server.lan)"
     echo "  --network NETWORK     - Red (ej. 192.168.1.0/24)"
     echo
+    echo "Opciones para mysql:"
+    echo "  -h, --help            - Muestra esta ayuda"
+    echo
+    echo "Opciones para antivirus:"
+    echo "  -h, --help            - Muestra esta ayuda"
+    echo
+    echo "Opciones para antispam:"
+    echo "  -h, --help            - Muestra esta ayuda"
+    echo
 }
 
 # Manejo de parámetros
@@ -117,6 +129,15 @@ case "$COMANDO" in
         ;;
     proxy)
         ./proxy/configurar_proxy.sh "$@"
+        ;;
+    mysql)
+        ./mysql/configurar_mysql.sh "$@"
+        ;;
+    antivirus)
+        ./seguridad/configurar_antivirus.sh "$@"
+        ;;
+    antispam)
+        ./seguridad/configurar_antispam.sh "$@"
         ;;
     *)
         echo "Comando no reconocido: $COMANDO"
