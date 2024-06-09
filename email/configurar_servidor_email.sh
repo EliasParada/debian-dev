@@ -93,7 +93,6 @@ EOF
 # Modificar 10-mail.conf
 echo "Modificando /etc/dovecot/conf.d/10-mail.conf..."
 sed -i 's/^#mail_plugins =/mail_plugins = $mail_plugins imap_quota/' /etc/dovecot/conf.d/10-mail.conf
-sed -i 's/^mail_plugins =/mail_plugins = $mail_plugins imap_quota/' /etc/dovecot/conf.d/10-mail.conf
 
 # Modificar local.conf para plugins
 echo "Modificando /etc/dovecot/local.conf..."
@@ -118,11 +117,7 @@ sudo systemctl restart dovecot
 
 # Prueba de nuevo con telnet
 echo "Prueba de nuevo con telnet..."
-telnet 127.0.0.1 imap <<EOF
-a login $USER $USER_PASSWORD
-a examine inbox
-a logout
-EOF
+telnet 127.0.0.1 imap
 
 # Instalar Postfix
 echo "Instalando Postfix..."
@@ -184,12 +179,13 @@ sudo service dovecot restart
 
 # Configurar SMTP autenticado en Postfix
 echo "Configurando autenticación SMTP en Postfix..."
+sed -i 's/^smtpd_client_restrictions =.*/smtpd_client_restrictions = permit_mynetworks, permit_sasl_authenticated, reject/' /etc/postfix/main.cf
+sed -i 's/^smtpd_recipient_restrictions =.*/smtpd_recipient_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination/' /etc/postfix/main.cf
+
+# Agregar configuraciones adicionales a Postfix
 cat <<EOL >> /etc/postfix/main.cf
 
-smtpd_client_restrictions = permit_mynetworks, permit_sasl_authenticated, reject
-smtpd_recipient_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination
-smtpd_helo_restrictions = reject_unknown_sender_domain
-smtpd_sender_restrictions = reject_unknown_sender_domain
+# Estas lineas son nuevas
 smtpd_sasl_auth_enable = yes
 smtpd_sasl_type = dovecot
 smtpd_sasl_path = private/auth
@@ -251,14 +247,12 @@ netstat -tap
 
 # Prueba con telnet a Amavis
 echo "Prueba con telnet a Amavis..."
-telnet 127.0.0.1 10024 <<EOF
-quit
-EOF
+telnet 127.0.0.1 10024
 
 # Configurar antivirus
 echo "Configurando antivirus..."
-sed -i 's/#@bypass_virus_checks_maps = (/ @bypass_virus_checks_maps = (/' /etc/amavis/conf.d/15-content_filter_mode
-sed -i 's/#   \%bypass_virus_checks,/   \%bypass_virus_checks, \@bypass_virus_checks_acl, \$bypass_virus_checks_re);/' /etc/amavis/conf.d/15-content_filter_mode
+sed -i 's/#@bypass_virus_checks_maps = (/@bypass_virus_checks_maps = (/' /etc/amavis/conf.d/15-content_filter_mode
+sed -i 's/bypass_virus_checks,/   \%bypass_virus_checks, \@bypass_virus_checks_acl, \$bypass_virus_checks_re);/' /etc/amavis/conf.d/15-content_filter_mode
 
 sudo adduser clamav amavis
 sudo systemctl restart amavis
@@ -266,16 +260,29 @@ sudo systemctl restart clamav-daemon
 
 # Configurar antispam
 echo "Configurando antispam..."
-sed -i 's/#@bypass_spam_checks_maps = (/ @bypass_spam_checks_maps = (/' /etc/amavis/conf.d/15-content_filter_mode
-sed -i 's/#   \%bypass_spam_checks,/   \%bypass_spam_checks, \@bypass_spam_checks_acl, \$bypass_spam_checks_re);/' /etc/amavis/conf.d/15-content_filter_mode
+sed -i 's/#@bypass_spam_checks_maps = (/@bypass_spam_checks_maps = (/' /etc/amavis/conf.d/15-content_filter_mode
+sed -i 's/bypass_spam_checks,/   \%bypass_spam_checks, \@bypass_spam_checks_acl, \$bypass_spam_checks_re);/' /etc/amavis/conf.d/15-content_filter_mode
 
-# Configurar amavis usuario
+# Configurar Amavis usuario
 echo "Configurando Amavis usuario..."
-sed -i '/#------------ Do not modify anything below this line -------------/i\
-$sa_spam_subject_tag = '\'"***SPAM*** "\';\
-$sa_tag_level_deflt  = undef;  # add spam info headers if at, or above that level\
-$sa_tag2_level_deflt = 6.31;   # add 'spam detected' headers at that level\
-$sa_kill_level_deflt = 9999;   # triggers spam evasive actions' /etc/amavis/conf.d/50-user
+cat <<EOL > /etc/amavis/conf.d/50-user
+use strict;
+
+#
+# Place your configuration directives here.  They will override those in
+# earlier files.
+#
+# See /usr/share/doc/amavisd-new/ for documentation and examples of
+# the directives you can use in this file
+#
+\$sa_spam_subject_tag = '***SPAM*** ';
+\$sa_tag_level_deflt  = undef;  # add spam info headers if at, or above that level
+\$sa_tag2_level_deflt = 6.31;   # add 'spam detected' headers at that level
+\$sa_kill_level_deflt = 9999;   # triggers spam evasive actions
+
+#------------ Do not modify anything below this line -------------
+1;  # ensure a defined return
+EOL
 
 sudo systemctl restart amavis
 
