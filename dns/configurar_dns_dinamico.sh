@@ -48,11 +48,11 @@ cat /etc/ddclient.conf
 
 # Reiniciar ddclient
 echo "Reiniciando ddclient..."
-service ddclient restart
+sudo service ddclient restart
 
 # Verificar configuración
 echo "Verificando configuración..."
-ddclient -v
+sudo ddclient -v
 nslookup $HOST
 
 echo "Configuración de DNS dinámico completada."

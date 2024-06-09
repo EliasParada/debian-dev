@@ -108,8 +108,8 @@ replace_or_add_line() {
 }
 
 # Reemplazar o agregar líneas en /etc/dhcp/dhcpd.conf
-replace_or_add_line "/etc/dhcp/dhcpd.conf" "option domain-name" "\"$HOST\""
 replace_or_add_line "/etc/dhcp/dhcpd.conf" "option domain-name-servers" "$IP, $ROUTER"
+replace_or_add_line "/etc/dhcp/dhcpd.conf" "option domain-name" "\"$HOST\""
 replace_or_add_line "/etc/dhcp/dhcpd.conf" "default-lease-time" "600"
 replace_or_add_line "/etc/dhcp/dhcpd.conf" "max-lease-time" "7200"
 replace_or_add_line "/etc/dhcp/dhcpd.conf" "ddns-update-style" "none"
@@ -157,8 +157,24 @@ EOL
     manage_block "/etc/dhcp/dhcpd.conf" "## Configurar Desktop" "## Fin" "$desktop_block"
 fi
 
+
+# Configurar bloque Laptop
+if [[ ! -z "$LAPTOP_MAC" && ! -z "$LAPTOP_IP" ]]; then
+    desktop_block=$(cat <<EOL
+host desktop {
+    hardware ethernet $LAPTOP_MAC;
+    fixed-address $LAPTOP_IP;
+}
+EOL
+    )
+    manage_block "/etc/dhcp/dhcpd.conf" "## Configurar Desktop" "## Fin" "$desktop_block"
+fi
 # Reiniciar isc-dhcp-server
 echo "Reiniciando isc-dhcp-server..."
 systemctl restart isc-dhcp-server
+
+# Reiniciar isc-dhcp-server
+echo "Verificando isc-dhcp-server..."
+systemctl status isc-dhcp-server
 
 echo "Configuración del servidor DHCP completada."
