@@ -55,9 +55,10 @@ replace_or_add_line() {
     local key=$2
     local value=$3
     local pattern="^$key"
-    
+    local insert_line_after="$4"  # Nueva variable para la línea después de la cual insertar
+
     if grep -q "$pattern" "$file"; then
-        sed -i "s|$pattern.*|$key $value|" "$file"
+        sed -i "/$insert_line_after/a $key $value" "$file"  # Insertar línea después de la línea especificada
     else
         echo "$key $value" >> "$file"
     fi
@@ -65,7 +66,7 @@ replace_or_add_line() {
 
 # Reemplazar o agregar líneas en /etc/squid/squid.conf
 # Agregar el ACL despues de esta linea "acl CONNECT method CONNECT"
-replace_or_add_line "/etc/squid/squid.conf" "acl $HOST src" "$NETWORK"
+replace_or_add_line "/etc/squid/squid.conf" "acl $HOST src" "$NETWORK" "acl CONNECT method CONNECT"
 replace_or_add_line "/etc/squid/squid.conf" "http_access allow" "$HOST"
 replace_or_add_line "/etc/squid/squid.conf" "cache_dir ufs /var/spool/squid" "2048 16 256"
 replace_or_add_line "/etc/squid/squid.conf" "visible_hostname" "proxy.$HOST"
