@@ -88,7 +88,7 @@ echo "Configurando zona directa..."
 cp /etc/bind/db.local /etc/bind/db.$DIRECT
 
 cat <<EOL > /etc/bind/db.$DIRECT
-$\TTL 3D
+\$TTL 3D
 @  IN SOA $SERVER_FULL.  root.$DIRECT. (
                  2        ; Serial
             604800        ; Refresh
@@ -116,7 +116,7 @@ echo "Configurando zona inversa..."
 cp /etc/bind/db.127 /etc/bind/db.$REVERSE
 
 cat <<EOL > /etc/bind/db.$REVERSE
-$\TTL 3D
+\$TTL 3D
 @  IN SOA $SERVER_FULL.  root.$DIRECT. (
                  2        ; Serial
             604800        ; Refresh

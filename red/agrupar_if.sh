@@ -111,7 +111,8 @@ EOL
     )
 done
 
-BONDING_CONFIG+="##
+BONDING_CONFIG+="
+##
 "
 
 # Actualizar el archivo de configuración de interfaces
