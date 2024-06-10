@@ -5,9 +5,38 @@
 
 # Mostrar ayuda
 mostrar_ayuda() {
-    echo "Uso: $0"
-    echo "  -h, --help  - Muestra esta ayuda"
+    echo "Uso: $0 --usuario USUARIO"
+    echo
+    echo "Opciones:"
+    echo "  --usuario USUARIO  - Nombre de usuario para la página personal"
+    echo "  -h, --help         - Muestra esta ayuda"
 }
+
+# Manejo de parámetros
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --usuario)
+            USUARIO="$2"
+            shift
+            ;;
+        -h|--help)
+            mostrar_ayuda
+            exit 0
+            ;;
+        *)
+            echo "Opción desconocida: $1"
+            mostrar_ayuda
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if [[ -z "$USUARIO" ]]; then
+    echo "El parámetro --usuario es obligatorio."
+    mostrar_ayuda
+    exit 1
+fi
 
 # Habilitar módulos de usuario en Apache
 echo "Habilitando módulos de usuario en Apache..."
@@ -24,9 +53,8 @@ sudo service apache2 restart
 
 # Crear directorio public_html
 echo "Creando directorio public_html..."
-# ERROR: debe de crear la carpeta en /home/[USUARIO]/
-mkdir -p ~/public_html
-cd ~/public_html
+mkdir -p "/home/$USUARIO/public_html"
+cd "/home/$USUARIO/public_html"
 echo "<html><body><h1>Página Personal</h1></body></html>" > index.html
 
 echo "Configuración de páginas personales completada."
