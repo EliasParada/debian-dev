@@ -80,6 +80,9 @@ case "$COMANDO" in
     servidor-web)
         ./web/configurar_servidor_web.sh "$@"
         ;;
+    paginas-personales)
+        ./web/configurar_paginas_personales.sh "$@"
+        ;;
     servidor-email )
         ./email/configurar_servidor_email.sh "$@"
         ;;
