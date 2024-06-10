@@ -101,8 +101,8 @@ svn log file:///var/lib/svn/$PROYECT
 
 # Crear directorio de prueba y archivo
 echo "Creando directorio de prueba y archivo..."
-mkdir -p ~/$DIR
-cd ~/$DIR
+mkdir -p /home/$USER/$DIR
+cd /home/$USER/$DIR
 echo $MESSAGE > $FILE
 
 # Agregar archivo al repositorio
