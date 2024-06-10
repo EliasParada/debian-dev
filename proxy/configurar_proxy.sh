@@ -55,21 +55,33 @@ replace_or_add_line() {
     local key=$2
     local value=$3
     local pattern="^$key"
-    local line_number=$(grep -n "$pattern" "$file" | cut -d ":" -f 1)
-
-    if [[ -n $line_number ]]; then
-        sed -i "$((line_number+1))i$key $value" "$file"
+    
+    if grep -q "$pattern" "$file"; then
+        sed -i "s|$pattern.*|$key $value|" "$file"
     else
         echo "$key $value" >> "$file"
     fi
 }
 
+replace_or_add_line() {
+    local file=$1
+    local key=$2
+    local value=$3
+    local pattern="^$key"
+    
+    if grep -q "$pattern" "$file"; then
+        sed -i "s|$pattern.*|$key $value|" "$file"
+    else
+        echo "$key $value" >> "$file"
+    fi
+}
 
 # Reemplazar o agregar líneas en /etc/squid/squid.conf
-# Agregar el ACL despues de esta linea "acl CONNECT method CONNECT"
-replace_or_add_line "/etc/squid/squid.conf" "acl $HOST src" "$NETWORK" "acl CONNECT method CONNECT"
-replace_or_add_line "/etc/squid/squid.conf" "http_access allow" "$HOST"
-replace_or_add_line "/etc/squid/squid.conf" "cache_dir ufs /var/spool/squid" "2048 16 256"
+# Obtener el número de línea donde se debe insertar la nueva línea
+line_number=$(awk '/acl CONNECT method CONNECT/{ print NR+1; exit }' /etc/squid/squid.conf)
+# Insertar la nueva línea en el archivo
+sed -i "${line_number}i acl $HOST src $NETWORK" /etc/squid/squid.conf
+sed -i 's/^#cache_dir ufs /cache_dir ufs /var/spool/squid 2048 16 256' /etc/squid/squid.conf
 replace_or_add_line "/etc/squid/squid.conf" "visible_hostname" "proxy.$HOST"
 
 # Reiniciar squid
