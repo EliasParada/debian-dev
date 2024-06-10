@@ -84,5 +84,5 @@ nameserver $NETWORK.1"
 echo "$RESOLV_CONF" > /etc/resolv.conf
 
 # Reiniciar el sistema
-echo "Reiniciando el sistema..."
-sudo reboot
+# echo "Reiniciando el sistema..."
+# sudo reboot
