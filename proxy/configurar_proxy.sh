@@ -81,7 +81,7 @@ replace_or_add_line() {
 line_number=$(awk '/acl CONNECT method CONNECT/{ print NR+1; exit }' /etc/squid/squid.conf)
 # Insertar la nueva línea en el archivo
 sed -i "${line_number}i acl $HOST src $NETWORK" /etc/squid/squid.conf
-sed -i 's/^#cache_dir ufs /cache_dir ufs /var/spool/squid 2048 16 256' /etc/squid/squid.conf
+sed -i 's/cache_dir ufs /var\/cache_dir ufs /var/spool/squid 2048 16 256' /etc/squid/squid.conf
 replace_or_add_line "/etc/squid/squid.conf" "visible_hostname" "proxy.$HOST"
 
 # Reiniciar squid
