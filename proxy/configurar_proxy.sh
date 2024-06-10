@@ -63,19 +63,6 @@ replace_or_add_line() {
     fi
 }
 
-replace_or_add_line() {
-    local file=$1
-    local key=$2
-    local value=$3
-    local pattern="^$key"
-    
-    if grep -q "$pattern" "$file"; then
-        sed -i "s|$pattern.*|$key $value|" "$file"
-    else
-        echo "$key $value" >> "$file"
-    fi
-}
-
 # Reemplazar o agregar líneas en /etc/squid/squid.conf
 # Obtener el número de línea donde se debe insertar la nueva línea
 line_number=$(awk '/acl CONNECT method CONNECT/{ print NR+1; exit }' /etc/squid/squid.conf)
