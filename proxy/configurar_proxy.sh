@@ -55,14 +55,15 @@ replace_or_add_line() {
     local key=$2
     local value=$3
     local pattern="^$key"
-    local insert_line_after="$4"  # Nueva variable para la línea después de la cual insertar
+    local line_number=$(grep -n "$pattern" "$file" | cut -d ":" -f 1)
 
-    if grep -q "$pattern" "$file"; then
-        sed -i "/$insert_line_after/a $key $value" "$file"  # Insertar línea después de la línea especificada
+    if [[ -n $line_number ]]; then
+        sed -i "$((line_number+1))i$key $value" "$file"
     else
         echo "$key $value" >> "$file"
     fi
 }
+
 
 # Reemplazar o agregar líneas en /etc/squid/squid.conf
 # Agregar el ACL despues de esta linea "acl CONNECT method CONNECT"
