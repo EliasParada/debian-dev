@@ -79,7 +79,15 @@ echo "Configurando /etc/network/interfaces..."
 INTERFACES_FILE="/etc/network/interfaces"
 
 # Crear la configuración de la interfaz agrupada
-BONDING_CONFIG=$(cat <<EOL
+BONDING_CONFIG=$(cat <<EOL > $INTERFACES_FILE
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
 ##
 ## Configurar interfaz agrupada
 ##
@@ -116,11 +124,11 @@ BONDING_CONFIG+="
 "
 
 # Actualizar el archivo de configuración de interfaces
-if grep -q "## Configurar interfaz agrupada" "$INTERFACES_FILE"; then
-    sed -i "/## Configurar interfaz agrupada/,/##/c\\$BONDING_CONFIG" "$INTERFACES_FILE"
-else
-    echo "$BONDING_CONFIG" >> "$INTERFACES_FILE"
-fi
+# if grep -q "## Configurar interfaz agrupada" "$INTERFACES_FILE"; then
+#     sed -i "/## Configurar interfaz agrupada/,/##/c\\$BONDING_CONFIG" "$INTERFACES_FILE"
+# else
+#     echo "$BONDING_CONFIG" >> "$INTERFACES_FILE"
+# fi
 
 # Configurar cada interfaz esclava
 echo "Bajando interfaces esclavas..."
