@@ -145,7 +145,7 @@ sudo modprobe bonding
 
 # Reiniciar el servicio de red
 echo "Reiniciando el servicio de red..."
-systemctl restart networking.service
+systemctl restart networking
 
 # Configurar el archivo /etc/resolv.conf
 echo "Configurando /etc/resolv.conf..."

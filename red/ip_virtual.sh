@@ -84,7 +84,7 @@ fi
 
 # Activar la interfaz principal
 echo "Activando interfaz principal..."
-ifup $IFACE
+sudo ifup $IFACE
 
 # Reiniciar el servicio de red
 echo "Reiniciando el servicio de red..."

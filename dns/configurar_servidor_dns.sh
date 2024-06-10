@@ -97,18 +97,18 @@ cat <<EOL > /etc/bind/db.$DIRECT
             604800 )      ; Negative Cache TTL
 
 ;
-@             IN    NS   $SERVER_FULL.
-@             IN    MX   10 mail.$DIRECT.
-$SERVER_FULL        IN    A    $IP
-mail          IN    A    $IP
-$DIRECT    IN    A    $IP
-$(hostname)       IN    A    $IP
-virtual       IN    A    $VIRTUAL_IP
-router        IN    A    $ROUTER
-gateway       IN    CNAME router
-proxy         IN    CNAME   $(hostname)
-www          IN   CNAME   $(hostname)
-ftp        IN     CNAME   $(hostname)
+@                       IN      NS      $SERVER_FULL.
+@                       IN      MX      10 mail.$DIRECT.
+$SERVER_FULL            IN      A       $IP
+mail                    IN      A       $IP
+$DIRECT                 IN      A       $IP
+$(hostname)             IN      A       $IP
+virtual                 IN      A       $VIRTUAL_IP
+router                  IN      A       $ROUTER
+gateway                 IN      CNAME   router
+proxy                   IN      CNAME   $(hostname)
+www                     IN      CNAME   $(hostname)
+ftp                     IN      CNAME   $(hostname)
 EOL
 
 # Configurar zona inversa
@@ -125,10 +125,10 @@ cat <<EOL > /etc/bind/db.$REVERSE
             604800 )      ; Negative Cache TTL
 
 ;
-@        IN    NS     $SERVER_FULL.
-$(echo $IP | awk -F. '{print $4}')       IN    PTR    $SERVER_FULL.
-$(echo $IP | awk -F. '{print $4}')       IN    PTR    mail.$DIRECT.
-$(echo $VIRTUAL_IP | awk -F. '{print $4}')       IN    PTR    virtual.$DIRECT.
+@                       IN      NS      $SERVER_FULL.
+$(echo $IP | awk -F. '{print $4}')                       IN      PTR     $SERVER_FULL.
+$(echo $IP | awk -F. '{print $4}')                       IN      PTR     mail.$DIRECT.
+$(echo $VIRTUAL_IP | awk -F. '{print $4}')               IN      PTR     virtual.$DIRECT.
 1        IN    PTR    router.$DIRECT.
 EOL
 
