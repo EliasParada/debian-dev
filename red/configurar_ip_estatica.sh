@@ -55,7 +55,17 @@ fi
 
 # Configurar el archivo /etc/network/interfaces
 echo "Configurando /etc/network/interfaces..."
-INTERFACE_CONFIG="auto $IFACE
+INTERFACE_CONFIG="
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto $IFACE
 iface $IFACE inet static
 allow hot-plug $IFACE
 address $IP
@@ -64,10 +74,10 @@ netmask 255.255.255.0
 broadcast $NETWORK.255
 network $NETWORK.0"
 
-if grep -q "auto $IFACE" /etc/network/interfaces; then
-    # Reemplazar la configuración existente de la interfaz
-    sed -i "/auto $IFACE/,+6d" /etc/network/interfaces
-fi
+# if grep -q "auto $IFACE" /etc/network/interfaces; then
+#     # Reemplazar la configuración existente de la interfaz
+#     sed -i "/auto $IFACE/,+6d" /etc/network/interfaces
+# fi
 
 echo "$INTERFACE_CONFIG" >> /etc/network/interfaces
 
