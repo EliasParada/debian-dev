@@ -127,7 +127,9 @@ BONDING_CONFIG+="
 # if grep -q "## Configurar interfaz agrupada" "$INTERFACES_FILE"; then
 #     sed -i "/## Configurar interfaz agrupada/,/##/c\\$BONDING_CONFIG" "$INTERFACES_FILE"
 # else
-echo "$BONDING_CONFIG" >> "$INTERFACES_FILE"
+cat <<EOL > $INTERFACES_FILE
+$BONDING_CONFIG
+EOL
 # fi
 
 # Configurar cada interfaz esclava
